@@ -1,0 +1,14 @@
+langchain-community 
+langgraph 
+langchain-anthropic 
+tavily-python 
+langgraph-checkpoint-sqlite
+langchain-mistralai
+sentence-transformers
+transformers
+llama-index-embeddings-langchain
+langchain-ollama
+python-dotenv
+IPython
+pypdf
+faiss-cpu
