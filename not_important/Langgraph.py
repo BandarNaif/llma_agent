@@ -7,7 +7,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
-from read_pdf_file import qa_chain_tool
+from not_important.read_pdf_file import qa_chain_tool
 
 # add memory to remeber the previos conversation
 memory = MemorySaver()

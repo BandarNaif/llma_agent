@@ -12,3 +12,9 @@ python-dotenv
 IPython
 pypdf
 faiss-cpu
+PyMuPDF
+pandas
+openpyxl
+unstructured
+langchain-experimental
+tabulate
