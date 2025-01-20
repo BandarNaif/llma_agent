@@ -1,5 +1,6 @@
+# Import Laiberies 
 from typing import Annotated
-from langchain_ollama import ChatOllama
+from langchain_ollama import ChatOllama, OllamaLLM, OllamaEmbeddings
 from typing_extensions import TypedDict
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import StateGraph
@@ -9,59 +10,33 @@ import pandas as pd
 import folium
 from itertools import cycle
 from langchain.tools import tool
-from langchain_community.document_loaders import PyMuPDFLoader
-from langchain_ollama import OllamaEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.chains import RetrievalQA
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_ollama import OllamaLLM
 from langchain_experimental.agents import create_csv_agent
-from langchain_core.prompts import PromptTemplate
 
 
 
-# Define the PromptTemplate
-prompt = PromptTemplate(
-    template="""
-    You are an AI agent responsible for selecting the appropriate tool to perform a task or answer a question. 
-    You must only invoke the specified tool based on the user's input. You are not allowed to provide direct answers.
-
-    Below is the conversation so far:
-
-    {messages}
-
-    Based on the user's latest query, decide which tool to use and invoke it:
-    
-    - If you read 'Visualize', use the `visualize_geo_points` tool.
-    - If you read 'get columns', use the `get_columns` tool.
-    - If you read 'Bandar', use the `BandarInfo` tool.
-    - If you read 'read csv', use the `Read_csv` tool.
-
-    Return only with Final Response from tools that slected.
-    """,
-    input_variables=["messages"]
-)
-
+# Lodaing Ollama model (Mistral)
 llm = ChatOllama(model="mistral",temperature=0)
+
 # add memory to remeber the previos conversation
 memory = MemorySaver()
-# Configration for memory
-config = {"configurable": {"thread_id": "3"}}
 
+# Configration ID for memory
+config = {"configurable": {"thread_id": "1"}}
 
 # Class to handle the updated messages without overwriting
-
-
 class State(TypedDict):
     messages: Annotated[list, add_messages]
+    
 
 # Tools 
 #Tool 1 for getting columns for csv file
-
-
 @tool
 def get_columns(path: str):
     """
+    -If you read get columns use this tool.
     Read csv files and get the names of the columns.
     
     Parameters:
@@ -78,6 +53,7 @@ def get_columns(path: str):
 @tool
 def visualize_geo_points(path, category_column, lat_column='lat', lon_column='lon', output_file='map.html'):
     """
+    -If you read Visualize use this tool.
     Visualize geospatial points on a map with category-based pin colors.
     
     Parameters:
@@ -127,6 +103,7 @@ def visualize_geo_points(path, category_column, lat_column='lat', lon_column='lo
 # Tool 3 is for reading from pdf file 
 def BandarInfo(query:str):
     """
+    -If you read Bandar use this tool.
     Read pdf file and answer any question related to bandar.
     
     Parameters:
@@ -145,10 +122,13 @@ def BandarInfo(query:str):
     # build chain to be ready for agent (Prepere the tool)
     qa_chain = RetrievalQA.from_chain_type(
         llm, retriever=vectorstore.as_retriever())
-    response = qa_chain.run(query)
-    return response
+    return qa_chain.run(query)
+
+
+# Read CSV file and make csv agent answer and do action as needed
 def Read_csv(query:str,path:str):
     """
+    -If you read read use this tool.
     Read csv file and answer any question related to csv file.
     
     Parameters:
@@ -169,15 +149,18 @@ def Read_csv(query:str,path:str):
     return response
 
 
+
+# List and tool and make chain with model 
 tools = [get_columns,visualize_geo_points,BandarInfo,Read_csv]
 llm_with_tools = llm.bind_tools(tools=tools)
 tool_node = ToolNode(tools=tools)
-model = prompt |llm_with_tools
+
 
 # Function for Create ChatBot
 
 def chatbot(state: State):
-    return {"messages": [model.invoke(state["messages"])]}
+    return {"messages": [llm_with_tools.invoke(state["messages"])]}
+
 
 # Create state graph and make the input is the state
 graph_builder = StateGraph(State)

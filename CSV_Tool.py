@@ -62,3 +62,25 @@ csv_tool = Tool(
     description="This tool answers questions based on drone result data from the dataset. "
     "The dataset includes columns such as 'image_name', 'db_name', 'length', 'score', 'distance', and 'time'. "
     "based on the query start search in datset and give the final result")
+
+
+def Read_csv(query:str,path:str):
+    """
+    -If you read read use this tool.
+    Read csv file and answer any question related to csv file.
+    
+    Parameters:
+    path (str) : Path of csv folder.
+    query (str): question 
+    
+    Returns:
+        Answer for question from csv document.
+    """
+    model = OllamaLLM(model="llama3")
+
+    csv_agent = create_csv_agent(
+                                model,
+                                path,
+                                verbose=True,
+                                allow_dangerous_code=True)
+    return csv_agent.run(query)

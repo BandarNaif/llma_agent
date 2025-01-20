@@ -26,8 +26,8 @@ graph_builder = StateGraph(State)
 tool = TavilySearchResults(max_results=2)
 tools = [tool, qa_chain_tool]
 # Loading model
-llm = ChatOllama(model="mistral")
-# Nake chain between llm and tools
+llm = ChatOllama(model="mistral",temperature=0)
+# Make chain between llm and tools
 llm_with_tools = llm.bind_tools(tools)
 tool_node = ToolNode(tools=tools)
 # function for chatbot
